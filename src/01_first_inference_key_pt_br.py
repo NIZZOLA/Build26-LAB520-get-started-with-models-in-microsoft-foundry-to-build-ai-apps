@@ -4,14 +4,13 @@ Lab 3: Primeira Inferência com Microsoft Foundry
 Conecte-se a um projeto Foundry e envie sua primeira solicitação de inferência para um modelo hospedado.
 
 Cenário: Você é Serena, uma desenvolvedora na Zava (uma varejista global de melhoria residencial),
-exploramdo Microsoft Foundry para alimentar recursos de IA para a plataforma Zava.
+explorando Microsoft Foundry para alimentar recursos de IA para a plataforma Zava.
 """
 
 import os
 import sys
 
-from azure.ai.projects import AIProjectClient
-from azure.identity import DefaultAzureCredential
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,7 +19,8 @@ load_dotenv()
 def main():
     # --- Validar ambiente ---
     endpoint = os.environ.get("PROJECT_ENDPOINT")
-    model = os.environ.get("MODEL_DEPLOYMENT_NAME")
+    model    = os.environ.get("MODEL_DEPLOYMENT_NAME")
+    api_key  = os.environ.get("FOUNDRY_API_KEY")
 
     if not endpoint or endpoint.startswith("https://<"):
         print("ERRO: Defina PROJECT_ENDPOINT no seu arquivo .env (veja Lab 2).")
@@ -28,16 +28,16 @@ def main():
     if not model:
         print("ERRO: Defina MODEL_DEPLOYMENT_NAME no seu arquivo .env.")
         sys.exit(1)
+    if not api_key:
+        print("ERRO: Defina FOUNDRY_API_KEY no seu arquivo .env.")
+        sys.exit(1)
 
-    # --- Conectar ao projeto Foundry ---
+    # --- Conectar ao projeto Foundry via chave de API ---
     print("Conectando ao projeto Foundry...")
-    project_client = AIProjectClient(
-        endpoint=endpoint,
-        credential=DefaultAzureCredential(),
+    inference_client = OpenAI(
+        base_url=endpoint.rstrip("/") + "/openai/v1",
+        api_key=api_key,
     )
-
-    # --- Obter cliente de inferência ---
-    inference_client = project_client.get_openai_client()
 
     # --- Enviar solicitação de inferência ---
     print(f"Enviando solicitação de inferência para o modelo: {model}")
